@@ -1,4 +1,4 @@
-import chromadb
+
 from chromadb.utils import embedding_functions
 import logging
 from langchain.embeddings import OpenAIEmbeddings

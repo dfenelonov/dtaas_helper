@@ -1,13 +1,13 @@
 import dotenv
 import os
 import telebot
-from base_manager import BaseManager
 from llm_handler import Giga
 
 dotenv.load_dotenv()
 
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
+assert(os.environ["GIGACHAT_CREDENTIALS"])
 
 bot = telebot.TeleBot(BOT_TOKEN)
 llmh = Giga()
@@ -23,21 +23,13 @@ def start(m, res=False):
 def handle_text(message):
     bot_response = "Что-то пошло не так"
     try:
-        bot_response = llmh.call(message)
-        if len(bot_response) > 4095:
-            for x in range(0, len(bot_response), 4095):
-                bot.reply_to(message, text=bot_response[x:x+4095])
-        else:
-            bot.reply_to(message, text=bot_response)
+        bot_response = llmh.call(message.text)
     except Exception as e:
         pass
-    bot.send_message(message.chat.id, bot_response)
+    bot.reply_to(message, bot_response)
 
 
 if __name__ == '__main__':
-    base_manager = BaseManager()
-    vs = base_manager.load_base()
-
     # Запускаем бота
     print("Bot is pooling...")
     bot.polling(none_stop=True, interval=0)
