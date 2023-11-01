@@ -2,6 +2,7 @@ import dotenv
 import os
 import telebot
 from llm_handler import Giga
+from db import DB_Handler
 
 dotenv.load_dotenv()
 
@@ -12,6 +13,7 @@ assert(os.environ["GIGACHAT_CREDENTIALS"])
 bot = telebot.TeleBot(BOT_TOKEN)
 llmh = Giga()
 
+db = DB_Handler()
 
 @bot.message_handler(commands=["start"])
 def start(m, res=False):
@@ -27,6 +29,7 @@ def handle_text(message):
     except Exception as e:
         pass
     bot.reply_to(message, bot_response)
+    db.insert_data(message, bot_response)
 
 
 if __name__ == '__main__':
