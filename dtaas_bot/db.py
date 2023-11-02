@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 class DB_Handler():
     def __init__(self):
@@ -15,10 +16,12 @@ class DB_Handler():
                                                             )
                         """
                         )
-        
-    def insert_data(self, message, response):
-        from datetime import datetime
+
+    def save_nessage(self, message, response):
         currentDateAndTime = datetime.now()
         self.cur.execute("INSERT INTO  logs VALUES(?, ?, ?, ?, ?, ?, ?)", (message.message_id, message.from_user.id, message.chat.id, message.text, response, currentDateAndTime, 'like'))
         self.connect.commit()
 
+    def __del__(self):
+        self.cursor.close()
+        self.connect.close()
