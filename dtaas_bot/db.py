@@ -17,7 +17,7 @@ class DB_Handler():
                         """
                         )
 
-    def save_nessage(self, message, response):
+    def save_message(self, message, response):
         currentDateAndTime = datetime.now()
         self.cur.execute("INSERT INTO  logs VALUES(?, ?, ?, ?, ?, ?, ?)", (message.message_id, message.from_user.id, message.chat.id, message.text, response, currentDateAndTime, 'like'))
         self.connect.commit()
