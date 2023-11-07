@@ -49,8 +49,6 @@ class DtaasHelper:
 
         @self.bot.callback_query_handler(func=lambda call: True)
         def callback_query(call):
- 
-            #ToDo: сохраняем  вбазу лайк/дизлайк
             if call.data=="like":
                 like = 1
             elif call.data=="dislike":
