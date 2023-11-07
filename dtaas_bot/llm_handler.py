@@ -2,13 +2,14 @@ from langchain.chat_models import GigaChat
 from langchain.schema import SystemMessage, HumanMessage
 
 class Giga():
-    def __init__(self):
+    def __init__(self, prompt):
         self._llm = GigaChat(verify_ssl_certs=False)
+        self.prompt = prompt
 
     def call(self, message):
         messages = [
             SystemMessage(
-                content="Ты полезный помощник по цифровой трансформации. Если не знаешь ответа на запрос пользователя, так и скажи, не фантазируй. Отвечай на русском"
+                content=self.prompt
             ),
             HumanMessage(
                 content=message
