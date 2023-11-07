@@ -12,6 +12,6 @@ class DBManager:
                              message.text, response)
         self.db.flush()
 
-
-
-   
+    def log_like(self, message_id, chat_id, like):
+        self.db.update_like(message_id, chat_id, like)
+        self.db.flush()

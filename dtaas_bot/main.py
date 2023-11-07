@@ -49,8 +49,16 @@ class DtaasHelper:
 
         @self.bot.callback_query_handler(func=lambda call: True)
         def callback_query(call):
+ 
             #ToDo: сохраняем  вбазу лайк/дизлайк
-            bot.answer_callback_query(call.id, "Спасибо за оценку!")
+            if call.data=="like":
+                like = 1
+            elif call.data=="dislike":
+                like = -1
+            else:
+                like = 0
+            self.db.log_like(call.message.id, call.message.chat.id, like)
+            self.bot.answer_callback_query(call.id, "Спасибо за оценку!")
 
     
 
