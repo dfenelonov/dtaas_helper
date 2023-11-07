@@ -2,7 +2,8 @@ import dotenv
 import os
 import telebot
 from llm_handler import Giga
-from db import DbHandler
+from db import DB
+from db_manager import DBManager
 import configparser
 
 dotenv.load_dotenv()
@@ -19,15 +20,22 @@ class DtaasHelper:
         self.prompt = config['DEFAULT']['prompt']
         self.bot = telebot.TeleBot(BOT_TOKEN)
         self.llmh = Giga(self.prompt)
-        self.db = DbHandler(self.db_path)
+        self.db = DBManager(self.db_path)
+
+        def gen_markup():
+            markup = telebot.types.InlineKeyboardMarkup()
+            markup.row_width = 2
+            markup.add(telebot.types.InlineKeyboardButton("👍", callback_data="like"),
+                                    telebot.types.InlineKeyboardButton("👎", callback_data="dislike"))
+            return markup
 
         @self.bot.message_handler(commands=["start"])
         def start(message, res=False):
             response = config['DEFAULT']['greeting']
             self.bot.send_message(
                 message.chat.id, response)
-            self.db.insert_data(message, response)
-            self.db.flush()
+            self.db.log_message(message, response)
+
 
         @self.bot.message_handler(content_types=["text"])
         def handle_text(message):
@@ -36,9 +44,15 @@ class DtaasHelper:
                 response = self.llmh.call(message.text)
             except Exception as e:
                 pass
-            self.bot.reply_to(message, response)
-            self.db.save_message(message, response)
-            self.db.flush()
+            self.bot.reply_to(message, response, reply_markup=gen_markup())
+            self.db.log_message(message, response)
+
+        @self.bot.callback_query_handler(func=lambda call: True)
+        def callback_query(call):
+            #ToDo: сохраняем  вбазу лайк/дизлайк
+            bot.answer_callback_query(call.id, "Спасибо за оценку!")
+
+    
 
     def run(self):
         print('bot is pooling')

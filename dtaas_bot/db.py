@@ -2,7 +2,7 @@ import sqlite3
 from datetime import datetime
 
 
-class DbHandler:
+class DB:
     def __init__(self, db_path):
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self.cursor = self.conn.cursor()
@@ -24,10 +24,13 @@ class DbHandler:
                                 """
                             )
 
-    def save_message(self, message, response):
+    def save_message(self, 
+                     message_id:int, from_user_id:int, chat_id:int,
+                     message_text:str, response_text:str, like_status:int = -1
+                     ):
         current_dt = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         self.cursor.execute("INSERT INTO  logs VALUES(?, ?, ?, ?, ?, ?, ?)", (
-        message.message_id, message.from_user.id, message.chat.id, message.text, response, current_dt, 1))
+        message_id, from_user_id, chat_id, message_text, response_text, current_dt, like_status))
 
     def flush(self):
         self.conn.commit()
