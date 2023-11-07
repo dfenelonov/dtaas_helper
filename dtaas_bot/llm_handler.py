@@ -1,7 +1,8 @@
 from langchain.chat_models import GigaChat
 from langchain.schema import SystemMessage, HumanMessage
 
-class Giga():
+
+class Giga:
     def __init__(self, prompt):
         self._llm = GigaChat(verify_ssl_certs=False)
         self.prompt = prompt
