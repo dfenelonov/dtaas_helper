@@ -26,7 +26,7 @@ class DbHandler:
 
     def save_message(self, message, response):
         current_dt = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        self.cursor.execute("INSERT INTO  logs VALUES(?, ?, ?, ?, ?, ?, ?)", (
+        self.cursor.execute("INSERT OR IGNORE INTO  logs VALUES(?, ?, ?, ?, ?, ?, ?)", (
         message.message_id, message.from_user.id, message.chat.id, message.text, response, current_dt, 1))
 
     def flush(self):
