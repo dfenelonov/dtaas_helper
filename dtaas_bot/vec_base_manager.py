@@ -6,12 +6,17 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 
 
-#TODO: сейчас трэш с путями, надо переделать
 class VecBaseManager:
     def __init__(self, path_to_data, path_to_vectorized_db):
         logging.info("Initialising BaseManager for path")
         self._path_to_data = path_to_data
         self._path_to_vectorized_db = path_to_vectorized_db
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
 
     def build_base(self):
         try:
