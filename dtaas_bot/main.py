@@ -1,14 +1,12 @@
 import dotenv
 import os
-import configparser
 import telebot
-from llm_handler import Giga
-from db_manager import DBManager
 import configparser
-from conf.config import Configuration
-from vec_base_handler import BaseManager
 
+from db_manager import DBManager
+from vec_base_manager import VecBaseManager
 
+from llm_handler import Giga
 
 dotenv.load_dotenv()
 
@@ -28,9 +26,12 @@ class DtaasHelper:
         self.greeting_response = config['DEFAULT']['error_response']
         self.path_to_vectorized_db = config['DEFAULT']['path_to_vectorized_db']
         self.data_type = config['DEFAULT']['data_type']
+        # Инициализируем бота
         self.bot = telebot.TeleBot(BOT_TOKEN)
-        self.bm = BaseManager(self.path_to_data, self.path_to_vectorized_db)
-        self.vs = self.bm.load_base()
+        # Инициализируем и загружаем векторную базу данных
+        self.vbm = VecBaseManager(self.path_to_data, self.path_to_vectorized_db)
+        self.vs = self.vbm.load_base()
+        # Инициализируем гигачат
         self.llmh = Giga(self.prompt, self.vs)
 
         self.db = DBManager(self.db_path)
@@ -48,7 +49,6 @@ class DtaasHelper:
             self.bot.send_message(
                 message.chat.id, response)
             self.db.log_message(message, response)
-
 
         @self.bot.message_handler(content_types=["text"])
         def handle_text(message):
@@ -70,8 +70,6 @@ class DtaasHelper:
                 like = 0
             self.db.log_like(call.message.id, call.message.chat.id, like)
             self.bot.answer_callback_query(call.id, "Спасибо за оценку!")
-
-
 
     def run(self):
         print('bot is pooling...')
