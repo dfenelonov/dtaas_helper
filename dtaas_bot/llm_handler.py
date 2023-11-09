@@ -1,4 +1,3 @@
-import logging
 from langchain.chat_models import GigaChat
 from langchain.chains import RetrievalQA
 from langchain.schema import SystemMessage, HumanMessage
