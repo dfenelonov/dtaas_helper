@@ -24,28 +24,3 @@ class Giga:
         result = qa_chain({"query": message})
         response = result["result"]
         return response
-
-
-class Gigaaaaaa:
-    def __init__(self, prompt, vector_store):
-        self._llm = GigaChat(temperature=1e-15, verify_ssl_certs=False)
-        self.prompt = prompt
-        self.vs = vector_store
-
-    def get_response(self, message, relevant_docs_k=2):
-        response = ""
-        QA_CHAIN_PROMPT = PromptTemplate.from_template(self.prompt)
-        qa_chain = RetrievalQA.from_chain_type(
-            self._llm,
-            chain_type='stuff',
-            retriever=self.vs.as_retriever(search_kwargs={"k": relevant_docs_k}),
-            chain_type_kwargs={"prompt": QA_CHAIN_PROMPT},
-            return_source_documents=True
-        )
-        result = qa_chain({'query': message})
-        print(result)
-        response = result["result"]
-        return response
-
-
-        
