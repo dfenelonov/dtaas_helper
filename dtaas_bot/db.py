@@ -24,14 +24,14 @@ class DB:
                                 """
                             )
 
-    def save_message(self, 
+    def save_message(self,
                      message_id:int, from_user_id:int, chat_id:int,
                      message_text:str, response_text:str, like:int = 0
                      ):
         current_dt = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         self.cursor.execute("INSERT INTO  messages VALUES(?, ?, ?, ?, ?, ?, ?)", (
         message_id, from_user_id, chat_id, message_text, response_text, current_dt, like))
-    
+
     def update_like(self, message_id, chat_id, like_status):
         sql_update_query = """Update messages set like = ? where message_id = ? and chat_id = ?"""
         data = (like_status,  message_id, chat_id,)
