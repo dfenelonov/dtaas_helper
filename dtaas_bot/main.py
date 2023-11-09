@@ -57,7 +57,7 @@ class DtaasHelper:
             try:
                 response = self.llmh.get_response(message.text)
             except Exception as e:
-                pass
+                print(e)
             self.bot.reply_to(message, response, reply_markup=gen_markup())
             self.db.log_message(message, response)
 
