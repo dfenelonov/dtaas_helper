@@ -20,14 +20,16 @@ class VecBaseManager:
 
     def build_base(self):
         try:
+            logging.info("Preprocessing data from " + self._path_to_data)
             prep = DataPreprocessor(self._path_to_data)
             all_splits = prep.make_docs('excel')
+            logging.info("Building Chroma database in" + self._path_to_vectorized_db)
             vectorstore = Chroma.from_texts(
                     texts=all_splits, embedding=OpenAIEmbeddings(), persist_directory=self._path_to_vectorized_db)
             vectorstore.persist()
             return vectorstore
         except Exception as e:
-            pass
+            logging.error("Preprocessing data and building base error: " + str(e))
 
     def load_base(self):
         logging.info("Looking for persist vectorstore in " + self._path_to_vectorized_db)
@@ -37,5 +39,6 @@ class VecBaseManager:
                               embedding_function=OpenAIEmbeddings())
             return vectordb
         else:
+            logging.info("Path does not exist. Building vectorstore in " + self._path_to_vectorized_db)
             vectordb = self.build_base()
             return vectordb
