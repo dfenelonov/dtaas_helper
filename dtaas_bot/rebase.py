@@ -23,4 +23,4 @@ logging.basicConfig(level=logging.DEBUG)
 load_dotenv()
 
 with VecBaseManager(source_folder, destination_folder) as vbm:
-    vbm.load_base()
+    vbm.build_base()
