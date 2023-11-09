@@ -35,16 +35,13 @@ class Giga:
                 HumanMessagePromptTemplate.from_template(self.prompt),
             ]
         )
-        try:
-            qa_chain = RetrievalQA.from_chain_type(
-                self._llm,
-                chain_type='stuff',
-                retriever=self.vs.as_retriever(search_kwargs={"k": relevant_docs_k}),
-                chain_type_kwargs={"prompt": chat_template},
-                return_source_documents=False
-            )
-            result = qa_chain({"query": message})
-            response = result["result"]
-        except Exception as e:
-            pass
+        qa_chain = RetrievalQA.from_chain_type(
+            self._llm,
+            chain_type='stuff',
+            retriever=self.vs.as_retriever(search_kwargs={"k": relevant_docs_k}),
+            chain_type_kwargs={"prompt": chat_template},
+            return_source_documents=False
+        )
+        result = qa_chain({"query": message})
+        response = result["result"]
         return response
