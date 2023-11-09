@@ -25,28 +25,23 @@ class Giga:
         return response
 
     def get_response(self, message, relevant_docs_k=3):
-        response = ""
-        try:
-            chat_template = ChatPromptTemplate.from_messages(
-                [
-                    SystemMessage(
-                        content=(
-                            self.sys_message
-                        )
-                    ),
-                    HumanMessagePromptTemplate.from_template(self.prompt),
-                ]
-            )
-            qa_chain = RetrievalQA.from_chain_type(
-                self._llm,
-                chain_type='stuff',
-                retriever=self.vs.as_retriever(search_kwargs={"k": relevant_docs_k}),
-                chain_type_kwargs={"prompt": chat_template},
-                return_source_documents=False
-            )
-            result = qa_chain({"query": message})
-            response = result["result"]
-        except Exception as e:
-            logging.error("Error answering message " + str(e))
-        finally:
-            return response
+        chat_template = ChatPromptTemplate.from_messages(
+            [
+                SystemMessage(
+                    content=(
+                        self.sys_message
+                    )
+                ),
+                HumanMessagePromptTemplate.from_template(self.prompt),
+            ]
+        )
+        qa_chain = RetrievalQA.from_chain_type(
+            self._llm,
+            chain_type='stuff',
+            retriever=self.vs.as_retriever(search_kwargs={"k": relevant_docs_k}),
+            chain_type_kwargs={"prompt": chat_template},
+            return_source_documents=False
+        )
+        result = qa_chain({"query": message})
+        response = result["result"]
+        return response
