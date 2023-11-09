@@ -26,13 +26,14 @@ class DtaasHelper:
         self.greeting_response = config['DEFAULT']['error_response']
         self.path_to_vectorized_db = config['DEFAULT']['path_to_vectorized_db']
         self.data_type = config['DEFAULT']['data_type']
+        self.sys_message = config['DEFAULT']['sys_message']
         # Инициализируем бота
         self.bot = telebot.TeleBot(BOT_TOKEN)
         # Инициализируем и загружаем векторную базу данных
-        self.vbm = VecBaseManager(self.path_to_data, self.path_to_vectorized_db)
-        self.vs = self.vbm.load_base()
+        with VecBaseManager(self.path_to_data, self.path_to_vectorized_db) as vbm:
+            self.vs = vbm.load_base()
         # Инициализируем гигачат
-        self.llmh = Giga(self.prompt, self.vs)
+        self.llmh = Giga(self.prompt, self.vs, self.sys_message)
 
         self.db = DBManager(self.db_path)
 
