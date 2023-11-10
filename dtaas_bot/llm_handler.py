@@ -24,7 +24,6 @@ class Giga:
         return response
 
     def get_response(self, message, relevant_docs_k=3):
-        response = ""
         chat_template = ChatPromptTemplate.from_messages(
             [
                 SystemMessage(

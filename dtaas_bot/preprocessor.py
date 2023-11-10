@@ -21,7 +21,7 @@ class DataPreprocessor:
 
     def load_data(self, mode='csv'):
         try:
-            logging.info("Читаем файл")
+            logging.info("Reading data from" + self._path_to_data)
             data = list()
             if mode == 'csv':
                 df = pd.read_csv(str(self._path_to_data), delimiter=';')
@@ -52,7 +52,7 @@ class DataPreprocessor:
                     chunks.append('\n'.join(elem))
             csv_data = '\n\n'.join(chunks)
         except Exception as e:
-            logging.error("Ошибка при чтении файла")
+            logging.error("Error reading or processing file.")
             csv_data = []
         finally:
             return csv_data
