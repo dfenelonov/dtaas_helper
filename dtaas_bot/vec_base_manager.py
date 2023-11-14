@@ -23,6 +23,7 @@ class VecBaseManager:
             logging.info("Preprocessing data from " + self._path_to_data)
             prep = DataPreprocessor(self._path_to_data)
             all_splits = prep.make_docs('excel')
+            print(all_splits)
             logging.info("Building Chroma database in" + self._path_to_vectorized_db)
             vectorstore = Chroma.from_texts(
                     texts=all_splits, embedding=OpenAIEmbeddings(), persist_directory=self._path_to_vectorized_db)
