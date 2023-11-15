@@ -34,7 +34,7 @@ class DtaasHelper:
         self.prompt = config['DEFAULT']['prompt']
         self.path_to_data = config['DEFAULT']['path_to_data']
         self.error_response = config['DEFAULT']['error_response']
-        self.greeting_response = config['DEFAULT']['error_response']
+        self.greeting_response = config['DEFAULT']['greeting']
         self.path_to_vectorized_db = config['DEFAULT']['path_to_vectorized_db']
         self.data_type = config['DEFAULT']['data_type']
         self.sys_message = config['DEFAULT']['sys_message']
