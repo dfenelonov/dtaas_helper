@@ -23,7 +23,7 @@ class DtaasHelper:
         self.prompt = config['DEFAULT']['prompt']
         self.path_to_data = config['DEFAULT']['path_to_data']
         self.error_response = config['DEFAULT']['error_response']
-        self.greeting_response = config['DEFAULT']['error_response']
+        self.greeting_response = config['DEFAULT']['greeting']
         self.path_to_vectorized_db = config['DEFAULT']['path_to_vectorized_db']
         self.data_type = config['DEFAULT']['data_type']
         self.sys_message = config['DEFAULT']['sys_message']
@@ -46,10 +46,13 @@ class DtaasHelper:
 
         @self.bot.message_handler(commands=["start"])
         def start(message, res=False):
-            response = self.greeting_response
-            self.bot.send_message(
-                message.chat.id, response)
-            self.db.log_message(message, response)
+            try:
+                response = self.greeting_response
+                self.bot.send_message(
+                    message.chat.id, response)
+                self.db.log_message(message, response)
+            except Exception as e:
+                print(e)
 
         @self.bot.message_handler(content_types=["text"])
         def handle_text(message):
