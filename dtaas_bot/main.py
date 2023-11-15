@@ -46,13 +46,10 @@ class DtaasHelper:
 
         @self.bot.message_handler(commands=["start"])
         def start(message, res=False):
-            try:
-                response = self.greeting_response
-                self.bot.send_message(
-                    message.chat.id, response)
-                self.db.log_message(message, response)
-            except Exception as e:
-                print(e)
+            response = self.greeting_response
+            self.bot.send_message(
+                message.chat.id, response)
+            self.db.log_message(message, response)
 
         @self.bot.message_handler(content_types=["text"])
         def handle_text(message):
