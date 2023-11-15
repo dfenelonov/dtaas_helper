@@ -2,6 +2,8 @@ import dotenv
 import os
 import telebot
 import configparser
+import logging
+import argparse
 
 from db_manager import DBManager
 from vec_base_manager import VecBaseManager
@@ -14,6 +16,15 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 assert(os.environ["GIGACHAT_CREDENTIALS"])
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--log", help="type of logs")
+args = parser.parse_args()
+
+if args.log:
+    numeric_level = getattr(logging, args.log.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % args.log)
+    logging.basicConfig(filename='debug.log', encoding='utf-8', level=numeric_level)
 
 class DtaasHelper:
     def __init__(self):
@@ -57,7 +68,7 @@ class DtaasHelper:
             try:
                 response = self.llmh.get_response(message.text)
             except Exception as e:
-                pass
+                logging.error("Can not get a response from LLM" + str(e))
             self.bot.reply_to(message, response, reply_markup=gen_markup())
             self.db.log_message(message, response)
 
