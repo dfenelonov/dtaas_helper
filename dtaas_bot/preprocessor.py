@@ -40,10 +40,10 @@ class DataPreprocessor:
                     header.append(elem.split('  :  ')[0])
             for elem in data:
                 length = len(' '.join(elem))
-                if length > 2000:
+                if length > 1000:
                     tmp = elem[2].split('  :  ')[1]
-                    splitted = [tmp[start:min(len(tmp) - 1, start + 2000)] for start in
-                                range(0, len(tmp), 2000)]
+                    splitted = [tmp[start:min(len(tmp) - 1, start + 1000)] for start in
+                                range(0, len(tmp), 1000)]
                     for ch in splitted:
                         chunk = elem
                         chunk[2] = header[2] + '  :  ' + ch

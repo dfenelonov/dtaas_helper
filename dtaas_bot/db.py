@@ -37,5 +37,10 @@ class DB:
         data = (like_status,  message_id, chat_id,)
         self.cursor.execute(sql_update_query, data)
 
+    def get_history(self, chat_id):
+        sql_data_query = """Select message, response from messages where chat_id = ? order by time desc limit 1"""
+        result = self.cursor.execute(sql_data_query, (chat_id,))
+        return result.fetchall()
+
     def flush(self):
         self.conn.commit()

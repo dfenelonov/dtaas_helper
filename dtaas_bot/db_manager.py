@@ -6,6 +6,9 @@ from db import DB
 class DBManager:
     def __init__(self, db_path):
         self.db = DB(db_path)
+
+    def get_context(self, chat_id):
+        return self.db.get_history(chat_id)
     
     def log_message(self, message, response):
         self.db.save_message(message.message_id, message.from_user.id, message.chat.id,
