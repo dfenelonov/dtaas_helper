@@ -65,6 +65,8 @@ class DtaasHelper:
         @self.bot.message_handler(content_types=["text"])
         def handle_text(message):
             response = self.error_response
+            response = self.llmh.get_response(message.text, self.db, message.chat.id)
+
             try:
                 response = self.llmh.get_response(message.text)
             except Exception as e:
