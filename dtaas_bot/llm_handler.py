@@ -1,10 +1,11 @@
 from langchain.tools import WikipediaQueryRun
 from langchain.utilities import WikipediaAPIWrapper
 from langchain.chat_models import GigaChat
+
 from langchain.chains import RetrievalQA, LLMChain
 from langchain.schema import SystemMessage, HumanMessage, AIMessage, StrOutputParser
 from langchain.prompts import HumanMessagePromptTemplate
-from langchain.agents import AgentExecutor, initialize_agent, Tool, AgentType, LLMSingleActionAgent
+from langchain.agents import AgentExecutor, initialize_agent, Tool, AgentType, LLMSingleActionAgent, tool
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.memory import ConversationBufferMemory
@@ -16,6 +17,7 @@ class Retrieve:
         self.prompt = prompt
         self.sys_message = sys_message
 
+    @tool
     def run(self, message):
         """Инструмент позволяет получить информацию о кейсах цифровой трансформации"""
         chat_template = ChatPromptTemplate.from_messages(
@@ -68,27 +70,57 @@ class Giga:
                 return input["input"]
         retrieval = Retrieve(self.vs, self.prompt, self.sys_message)
         wikipedia = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
-        tools = [
-            Tool(
-                name="Case data",
-                func=retrieval.run,
-                description="Полезно, когда необходимо узнать о кейсах цифровой трансформации. В качестве параметров передай, о каком кейсе ты хотел бы узнать, пиши кратко"
-            ),
-            Tool(
+
+        wiki = Tool(
                 name="Wiki search",
                 func=wikipedia.run,
                 description="Полезно, когда нужно что-то узнать в википелии. В качестве параметров передай то, что было бы понятно википедии"
-            ),
-            Tool(
-                name="Default answer",
-                func=self._llm,
-                description="Полезно, когда пользователь просто хочет сказать привет или что-то малозначимое. В качестве параметров передай то, что хочет сказать пользователь"
+        )
 
-            )
-        ]
+        def_ans = Tool(
+                name="Default answer",
+                func=self._llm.call_as_llm,
+                description="Полезно, когда пользователь просто хочет сказать привет или что-то малозначимое. В качестве параметров передай то, что хочет сказать пользователь"
+        )
+
         from langchain.embeddings import HuggingFaceEmbeddings
         from langchain.schema import Document
         from langchain.vectorstores import FAISS
+
+        tools = [retrieval.run, wiki, def_ans]
+
+        from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    """Ты помощник клиентского менеджера по цифровой трансформации.""",
+                ),
+                ("user", "{input}"),
+                MessagesPlaceholder(variable_name="agent_scratchpad"),
+            ]
+        )
+
+        from langchain.tools.render import format_tool_to_openai_function
+
+        llm_with_tools = self._llm.bind(functions=[format_tool_to_openai_function(t) for t in tools])
+
+        from langchain.agents.format_scratchpad import format_to_openai_functions
+        from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
+
+        agent = (
+                {
+                    "input": lambda x: x["question"],
+                    "agent_scratchpad": lambda x: format_to_openai_functions(
+                        x["intermediate_steps"]
+                    ),
+                }
+                | prompt
+                | llm_with_tools
+                | OpenAIFunctionsAgentOutputParser()
+        )
+        agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
         chat_history_from_db = db.get_context(chat_id)
         chat_history = list()
@@ -97,38 +129,37 @@ class Giga:
             chat_history.append(AIMessage(content=element[1]))
 
         condense_q_system_prompt = """Тебе дана история чата и последний вопрос пользователя \
-        который может отсылать к истории чата, сформулируй отдельный вопрос \
-        который может быть понятен без истории чата. НЕ ОТВЕЧАЙ НА ВОПРОС, \
-        ПРОСТО ПЕРЕФОРМУЛИРУЙ ЕГО"""
-
+                который может отсылать к истории чата, сформулируй отдельный вопрос \
+                который может быть понятен без истории чата. НЕ отвечай на вопрос, \
+                просто переформулируй его, если нужно, а если не нужно, то не надо переформулировать"""
         condense_q_prompt = ChatPromptTemplate.from_messages(
             [
-                ('system', condense_q_system_prompt),
+                ("system", condense_q_system_prompt),
                 MessagesPlaceholder(variable_name="chat_history"),
-                ("human", "{question}. ПЕРЕФОРМУЛИРУЙ ЭТОТ ВОПРОС ТАК, ЧТОБЫ ОН ЗВУЧАЛ КАК ПРОДОЛЖЕНИЕ ДИАЛОГА И БЫЛ ПОНЯТЕН БЕЗ КОНТЕКСТА. ОБЯЗАТЕЛЬНО СОХРАНИ СМЫСЛ ВОПРОСА")
+                ("human", "{question}"),
             ]
         )
         condense_q_chain = condense_q_prompt | self._llm | StrOutputParser()
 
-        docs = [
-            Document(page_content=t.description, metadata={"index": i})
-            for i, t in enumerate(tools)
-        ]
-        vector_store = FAISS.from_documents(docs, HuggingFaceEmbeddings())
-
-        retriever = vector_store.as_retriever()
-
-        def get_tools(query):
-            docs = retriever.get_relevant_documents(query)
-            return [tools[d.metadata["index"]] for d in docs]
-
-        tools = get_tools(message)
-
-        mrkl = initialize_agent(tools, self._llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, handle_parsing_errors=True)
-        mrkl_chain = (
-            RunnablePassthrough.assign(input=condense_question)
-            | mrkl
+        qa_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", self.prompt),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("human", "{question}"),
+            ]
         )
-        output = mrkl_chain.invoke({"question": message, "chat_history": chat_history})
-        print(output)
-        return output['output']
+
+        def format_docs(docs):
+            return "\n\n".join(doc.page_content for doc in docs)
+
+        rag_chain = (
+                RunnablePassthrough.assign(
+                    context=condense_question | self.vs.as_retriever(search_kwargs={"k": 3}) | format_docs)
+                | agent_executor
+                | qa_prompt
+                | self._llm
+        )
+
+        result = rag_chain.invoke({"question": message, "chat_history": chat_history})
+        print(result)
+        return dict(result)['content']
