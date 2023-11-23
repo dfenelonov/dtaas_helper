@@ -65,10 +65,9 @@ class DtaasHelper:
         @self.bot.message_handler(content_types=["text"])
         def handle_text(message):
             response = self.error_response
-            try:
-                response = self.llmh.get_response(message.text, self.db, message.chat.id)
-            except Exception as e:
-                logging.error("Can not get a response from LLM: " + str(e))
+
+            response = self.llmh.get_response(message.text, self.db, message.chat.id)
+
             self.bot.reply_to(message, response, reply_markup=gen_markup())
             self.db.log_message(message, response)
 
