@@ -2,7 +2,7 @@ import logging
 import os
 from preprocessor import DataPreprocessor
 
-from langchain.embeddings import OpenAIEmbeddings
+from embeddings import GigaChatEmbeddings
 from langchain.vectorstores import Chroma
 
 
@@ -25,7 +25,7 @@ class VecBaseManager:
             all_splits = prep.make_docs('excel')
             logging.info("Building Chroma database in" + self._path_to_vectorized_db)
             vectorstore = Chroma.from_texts(
-                    texts=all_splits, embedding=OpenAIEmbeddings(), persist_directory=self._path_to_vectorized_db)
+                    texts=all_splits, embedding=GigaChatEmbeddings(), persist_directory=self._path_to_vectorized_db)
             vectorstore.persist()
             return vectorstore
         except Exception as e:
@@ -36,7 +36,7 @@ class VecBaseManager:
         if os.path.exists(self._path_to_vectorized_db):
             logging.info("Path exist. Reading vectorstore from " + self._path_to_vectorized_db)
             vectordb = Chroma(persist_directory=self._path_to_vectorized_db,
-                              embedding_function=OpenAIEmbeddings())
+                              embedding_function=GigaChatEmbeddings())
             return vectordb
         else:
             logging.info("Path does not exist. Building vectorstore in " + self._path_to_vectorized_db)

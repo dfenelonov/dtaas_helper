@@ -26,6 +26,7 @@ if args.log:
         raise ValueError('Invalid log level: %s' % args.log)
     logging.basicConfig(filename='debug.log', encoding='utf-8', level=numeric_level)
 
+
 class DtaasHelper:
     def __init__(self):
         config = configparser.ConfigParser()
