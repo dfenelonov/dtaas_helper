@@ -50,7 +50,6 @@ class DataPreprocessor:
                         chunks.append('\n'.join(chunk))
                 else:
                     chunks.append('\n'.join(elem))
-            print(chunks)
             csv_data = '\n\n'.join(chunks)
         except Exception as e:
             logging.error("Error reading or processing file.")
